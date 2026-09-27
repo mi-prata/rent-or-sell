@@ -1,0 +1,15 @@
+[package]
+name = "rent-or-sell-cli"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+comfy-table.workspace = true
+csv.workspace = true
+rent-or-sell-engine.workspace = true
+
+[[bin]]
+name = "rent-or-sell"
+path = "src/main.rs"
