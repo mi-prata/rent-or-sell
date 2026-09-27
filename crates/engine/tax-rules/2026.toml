@@ -1,0 +1,112 @@
+# Norwegian tax parameters for income year 2026.
+#
+# Every value records where it comes from and when it was last checked.
+# Verify against skatteetaten.no before relying on results, and add a new
+# file (e.g. 2027.toml) when a new income year's rules are published.
+# Years without their own file use the latest earlier file.
+
+income_year = 2026
+description = "Rental income, interest deduction, sale of own home, share income, wealth tax"
+
+[capital_income_rate]
+value = 0.22
+source = "https://www.skatteetaten.no/en/rates/general-income/"
+verified_on = "2026-09-27"
+note = "Tax on alminnelig inntekt; applies to net rental income and to the value of interest deductions."
+
+[rental_tax_free_threshold]
+value = 20000
+source = "https://www.skatteetaten.no/person/skatt/hjelp-til-riktig-skatt/bolig-og-eiendeler/bolig-eiendom-tomt/utleie/"
+verified_on = "2026-09-27"
+note = "Rental income up to this amount per calendar year is tax-free (then costs are not deductible either). The separate rule for renting out less than half of your own home is not modelled."
+
+[loan_fees_deductible]
+value = true
+source = "https://www.sambla.no/sambla-forklarer/skattefradrag/"
+verified_on = "2026-09-27"
+note = "Termingebyr/etableringsgebyr are deductible like interest. Secondary source only; confirm on skatteetaten.no."
+
+# Tax-free sale of your own home: owned for more than `sale_min_ownership_months`
+# and lived in it for at least `sale_occupancy_months` of the
+# `sale_occupancy_window_months` before the sale. Otherwise the gain is taxed at
+# capital_income_rate and a loss is deductible.
+
+[sale_min_ownership_months]
+value = 12
+source = "https://www.skatteetaten.no/person/skatt/hjelp-til-riktig-skatt/bolig-og-eiendeler/bolig-eiendom-tomt/salg/"
+verified_on = "2026-09-27"
+note = "Must be exceeded (\"eid boligen i over ett år\"). The real rule counts days; the engine counts whole months conservatively."
+
+[sale_occupancy_months]
+value = 12
+source = "https://www.skatteetaten.no/person/skatt/hjelp-til-riktig-skatt/bolig-og-eiendeler/bolig-eiendom-tomt/salg/"
+verified_on = "2026-09-27"
+note = "Lived in the home as your own residence for at least one year..."
+
+[sale_occupancy_window_months]
+value = 24
+source = "https://www.skatteetaten.no/person/skatt/hjelp-til-riktig-skatt/bolig-og-eiendeler/bolig-eiendom-tomt/salg/"
+verified_on = "2026-09-27"
+note = "...within the two years before the sale."
+
+[share_income_uplift_factor]
+value = 1.72
+source = "https://www.skatteetaten.no/en/rates/factor-for-upward-adjustment-of-gainloss-or-dividend-on-shares/"
+verified_on = "2026-09-27"
+note = "Gains/losses on shares and equity funds (incl. ASK) are multiplied by this before the capital income rate: 22% × 1.72 = 37.84%. Skjermingsfradrag is not modelled."
+
+# Wealth tax (formuesskatt), valued at 31 December. Thresholds are per person;
+# spouses assessed together get both thresholds doubled.
+
+[wealth_threshold]
+value = 1900000
+source = "https://www.skatteetaten.no/en/rettskilder/type/uttalelser/uttalelser/forskuddsutskrivingen-2026/"
+verified_on = "2026-09-27"
+note = "Bunnfradrag per person (3 800 000 kr for spouses)."
+
+[wealth_rate]
+value = 0.01
+source = "https://www.skatteetaten.no/en/rettskilder/type/uttalelser/uttalelser/forskuddsutskrivingen-2026/"
+verified_on = "2026-09-27"
+note = "Municipal 0.35% + state 0.65%."
+
+[wealth_high_threshold]
+value = 21500000
+source = "https://www.skatteetaten.no/en/rettskilder/type/uttalelser/uttalelser/forskuddsutskrivingen-2026/"
+verified_on = "2026-09-27"
+note = "Per person (43 000 000 kr for spouses)."
+
+[wealth_high_rate]
+value = 0.011
+source = "https://www.skatteetaten.no/en/rettskilder/type/uttalelser/uttalelser/forskuddsutskrivingen-2026/"
+verified_on = "2026-09-27"
+note = "Municipal 0.35% + state 0.75%."
+
+[primary_home_low_rate]
+value = 0.25
+source = "https://www.skatteetaten.no/en/person/taxes/get-the-taxes-right/property-and-belongings/houses-property-and-plots-of-land/tax-value/taxable-value-of-residential-properties/"
+verified_on = "2026-09-27"
+note = "Share of the calculated market value (beregnet markedsverdi) up to primary_home_step."
+
+[primary_home_step]
+value = 14000000
+source = "https://www.skatteetaten.no/en/person/taxes/get-the-taxes-right/property-and-belongings/houses-property-and-plots-of-land/tax-value/taxable-value-of-residential-properties/"
+verified_on = "2026-09-27"
+note = "Raised from 10 million for 2026 in the revised national budget; Forskuddsutskrivingen 2026 still says 10 million."
+
+[primary_home_high_rate]
+value = 0.70
+source = "https://www.skatteetaten.no/en/person/taxes/get-the-taxes-right/property-and-belongings/houses-property-and-plots-of-land/tax-value/taxable-value-of-residential-properties/"
+verified_on = "2026-09-27"
+
+[secondary_home_rate]
+value = 1.0
+source = "https://www.skatteetaten.no/en/person/taxes/get-the-taxes-right/property-and-belongings/houses-property-and-plots-of-land/tax-value/secondary-dwelling/how-much-tax-will-you-have-to-pay/"
+verified_on = "2026-09-27"
+note = "Rented-out and other homes you don't live in."
+
+[share_valuation_rate]
+value = 0.80
+source = "https://www.skatteetaten.no/en/rettskilder/type/uttalelser/uttalelser/forskuddsutskrivingen-2026/"
+verified_on = "2026-09-27"
+note = "Shares and the equity part of fund units. The 20% discount also reduces the debt deduction proportionally (gjeldsreduksjon): https://www.skatteetaten.no/en/person/taxes/get-the-taxes-right/valuation-discount-in-connection-with-assessment-of-wealth/"

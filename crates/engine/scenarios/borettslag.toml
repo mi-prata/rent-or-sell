@@ -1,0 +1,65 @@
+# Example borettslag scenario with fictional numbers. See basic.toml for
+# the full list of options; this file shows what differs for a borettslag.
+#
+# In a borettslag you own a share of a housing cooperative that has common
+# debt (fellesgjeld). Your part of that debt is paid through felleskost, the
+# buyer takes it over when you sell, and it counts as your debt for wealth tax.
+
+schema_version = 1
+name = "Borettslag example"
+description = "New-build borettslag flat; the fellesgjeld's interest-only period ends in 2027."
+start = "2026-01"
+horizon_years = 3          # renting out a borettslag unit is limited to 3 years (borettslagsloven § 5-5)
+
+[property]
+kind = "borettslag"
+market_value = 4_300_000   # total price INCLUDING your share of the fellesgjeld
+ownership_share = 1.0
+purchase_date = "2022-03"
+purchase_price = 2_800_000 # price paid EXCLUDING fellesgjeld
+purchase_costs = 5_000     # no dokumentavgift on borettslag shares
+price_growth = { constant = 0.03 }
+
+# Your share of the fellesgjeld. Its payments are part of the felleskost
+# invoice; the tool splits them out of costs.felleskostnader below.
+[fellesgjeld]
+balance = 1_000_000        # outstanding at `start`
+at_purchase = 1_000_000    # when you bought (defaults to `balance`)
+kind = "annuity"
+end = "2057-12"
+nominal_rate = { constant = 0.052 }
+interest_only_until = "2027-12"   # typical for new-builds: felleskost jumps after this
+
+[owner]
+moved_out = "2026-01"
+
+[sale]
+broker_rate = 0.015        # on the total price (assumed)
+fixed_costs = 35_000
+
+[loan]
+balance = 2_200_000
+kind = "annuity"
+end = "2052-02"
+monthly_fee = 50
+nominal_rate = { constant = 0.051 }
+
+[rental]
+monthly_rent = 16_500
+vacancy_weeks = 1.56
+rent_growth = { constant = 0.03 }
+
+[costs]
+growth = { constant = 0.03 }
+felleskostnader = { monthly = 7_233 }        # the whole invoice; the fellesgjeld payment in it (4 333 now) is split off
+insurance = { annual = 2_500 }
+maintenance = { annual = 8_000 }
+
+[alternative.invest]
+annual_return = { constant = 0.06 }
+tax = "deferred"
+equity_share = 1.0
+
+[wealth]
+other_net_wealth = { constant = 600_000 }
+assessed_market_value = 4_100_000   # includes the fellesgjeld, like the price

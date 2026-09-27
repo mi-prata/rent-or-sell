@@ -1,0 +1,14 @@
+---
+source: crates/engine/tests/golden.rs
+expression: "rent_or_sell_engine::export::sensitivity_table(&rows).to_plain_csv()"
+---
+change,keep_net_position,keep_vs_base,sell_now_vs_keep,sell_now_break_even
+Base,3037785.32,0.00,-194510.35,0.046771
+Interest rate +1 pp,2759917.16,-277868.15,115996.77,0.035904
+Interest rate −1 pp,3308595.12,270809.80,-495773.66,0.057235
+Price growth +1 pp,3585853.35,548068.03,-739375.64,0.063956
+Price growth −1 pp,2536400.27,-501385.04,303796.92,0.028587
+Rent +10%,3233504.00,195718.68,-422565.32,0.054876
+Rent −10%,2842066.63,-195718.68,33544.61,0.038794
+Vacancy +1 month/yr,2867890.62,-169894.69,3454.03,0.039840
+Running costs +20%,2902598.67,-135186.65,-37064.98,0.041251

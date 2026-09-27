@@ -1,0 +1,92 @@
+# Example scenario with fictional numbers. Copy this file and plug in your own.
+#
+# Amounts are in NOK. Property-level amounts (value, purchase, improvements,
+# rent, costs, fixed sale costs) are for the whole property and are scaled by
+# `ownership_share`; the loan is yours. Rates are fractions (0.05 = 5%).
+# Anything that changes over time can be written as
+#   { constant = 0.05 }
+#   { steps  = [{ from = "2027-06", value = 0.047 }, ...] }   (hold each value)
+#   { linear = [{ from = "2027-06", value = 0.047 }, ...] }   (interpolate)
+
+schema_version = 1
+name = "Basic example"
+description = "Two-bedroom selveier flat, annuity loan, rate cut in mid-2027."
+start = "2026-10"          # first simulated month
+horizon_years = 10
+
+[property]
+market_value = 5_500_000   # today's value (at `start`)
+ownership_share = 1.0      # e.g. 0.5 for half of a sameie
+purchase_date = "2019-05"
+purchase_price = 3_900_000
+purchase_costs = 98_000    # dokumentavgift, tinglysing, ...
+price_growth = { constant = 0.03 }   # annual; compounded monthly
+
+# Improvements (påkostninger) raise the entry value for gain tax. Routine
+# maintenance does not belong here.
+[[property.improvements]]
+date = "2021-03"
+amount = 150_000
+description = "New bathroom"
+
+[owner]
+# moved_in defaults to purchase_date; moved_out is the first month you no
+# longer lived there (defaults to `start`). Drives the tax-free sale deadline.
+moved_out = "2026-08"
+
+[sale]
+broker_rate = 0.015        # meglerprovisjon as a share of the price
+fixed_costs = 40_000       # marketing, takst, oppgjør; grows with costs.growth
+sell_at = ["2030-01"]      # extra sale months to compare
+
+# Where money not tied up in the property goes: sale proceeds (and, after a
+# sale, what keeping would have cost you each month), and savings unless they
+# prepay the loan. Required for the keep-vs-sell comparison's net positions.
+[alternative.invest]
+annual_return = { constant = 0.06 }   # annual, compounded monthly
+tax = "deferred"           # after_tax (return is net) | yearly (22% each year) | deferred (ASK-like, on cashing out)
+equity_share = 1.0         # for wealth tax: 1.0 equity fund (valued at 80%), 0.0 bank/interest fund (100%)
+
+# Optional: wealth tax (formuesskatt). Each option pays the tax its holdings
+# add on top of your other net wealth, valued at 31 December.
+[wealth]
+persons = 1                          # 2 = spouses assessed together (double thresholds)
+other_net_wealth = { constant = 1_200_000 }   # taxable, after discounts, excluding this property/loan/investment
+assessed_market_value = 4_900_000    # "beregnet markedsverdi" from your tax return (whole property)
+
+# Optional lump sum available in every option: prepays the loan in
+# "keep, prepay" (shorter loan, same payment) and is invested otherwise.
+[savings]
+amount = 300_000
+at = "2026-10"             # defaults to start
+
+[loan]
+balance = 3_800_000
+kind = "annuity"           # or "serial"
+end = "2051-09"            # month of the final payment
+monthly_fee = 50           # termingebyr
+nominal_rate = { steps = [
+    { from = "2026-10", value = 0.052 },
+    { from = "2027-06", value = 0.047 },
+] }
+
+[rental]
+monthly_rent = 19_000
+vacancy_weeks = 2.08       # expected weeks a year without a tenant
+rent_growth = { constant = 0.03 }
+management_fee_rate = 0.0  # e.g. 0.08 if an agency manages the letting
+
+[costs]
+growth = { constant = 0.03 }                 # annual cost growth (≈ CPI)
+felleskostnader = { monthly = 3_200 }
+municipal_fees = { annual = 14_000 }         # kommunale avgifter
+property_tax = { annual = 0 }                # eiendomsskatt
+insurance = { annual = 3_500 }
+maintenance = { annual = 12_000 }
+
+# Extra costs: `deductible = false` for things that are not tax-deductible,
+# such as saving up for improvements (påkostninger).
+[[costs.other]]
+name = "improvement fund"
+annual = 6_000
+deductible = false

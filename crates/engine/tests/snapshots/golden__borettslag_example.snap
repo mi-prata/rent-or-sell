@@ -1,0 +1,18 @@
+---
+source: crates/engine/tests/golden.rs
+expression: all
+---
+year,months,rules_year,gross_rent,vacancy_loss,rent_collected,management_fee,cost:felleskostnader,cost:insurance,cost:maintenance,operating_costs,interest,loan_fees,principal,fellesgjeld_interest,fellesgjeld_principal,pre_tax_cash_flow,rental_income_taxable,taxable_rental_result,interest_deduction,tax,taxable_wealth,wealth_tax,after_tax_cash_flow,avg_monthly_out_of_pocket,after_tax_monthly,loan_balance_end,fellesgjeld_balance_end,sold_at_year_end:month,sold_at_year_end:price,sold_at_year_end:sale_costs,sold_at_year_end:entry_value,sold_at_year_end:gain,sold_at_year_end:tax_free,sold_at_year_end:gain_tax,sold_at_year_end:debt_repaid,sold_at_year_end:fellesgjeld,sold_at_year_end:equity,sold_at_year_end:cumulative_cash,sold_at_year_end:net_position,break_even_sell_now
+2026,12,2026,198000.00,5940.00,192060.00,0.00,34796.00,2500.00,8000.00,45296.00,111245.63,600.00,41207.35,52000.00,0.00,-58288.98,true,146764.00,163845.63,-3757.96,1064207.35,0.00,-54531.02,4857.41,-4544.25,2158792.65,1000000.00,2027-01,4429000.00,102485.00,3805000.00,521515.00,false,114733.30,2158792.65,1000000.00,1052989.05,-54531.02,998458.03,-0.001988
+2027,12,2026,203940.00,6118.20,197821.80,0.00,35839.88,2575.00,8240.00,46654.88,109094.23,600.00,43358.75,52000.00,0.00,-53886.06,true,151166.92,161694.23,-2316.01,1234256.10,0.00,-51570.05,4490.50,-4297.50,2115433.90,1000000.00,2028-01,4561870.00,105559.55,3805000.00,651310.45,false,143288.30,2115433.90,1000000.00,1197588.25,-106101.07,1091487.18,0.042319
+2028,12,2026,210058.20,6301.75,203756.45,0.00,36915.08,2652.25,8487.20,48054.53,106830.50,600.00,45622.48,51664.05,14229.26,-63244.36,true,155701.93,159094.55,-746.38,1424598.54,1245.99,-63743.97,5270.36,-5312.00,2069811.42,985770.74,2029-01,4698726.10,108726.34,3805000.00,784999.76,false,172699.95,2069811.42,985770.74,1361717.65,-169845.04,1191872.62,0.055952
+
+option,month,price,sale_costs,entry_value,gain,tax_free,gain_tax,debt_repaid,fellesgjeld,equity,cumulative_cash,net_position
+Sell now,2026-01,4300000.00,99500.00,3805000.00,395500.00,true,0.00,2200000.00,1000000.00,1000500.00,0.00,1000500.00
+Sell last tax-free month,2026-12,4418103.76,101271.56,3805000.00,511832.21,true,0.00,2162307.26,1000000.00,1154524.95,-49969.02,1104555.93
+Rent to horizon,2029-01,4698726.10,108726.34,3805000.00,784999.76,false,172699.95,2069811.42,985770.74,1361717.65,-169845.04,1191872.62
+
+option,sale_month,target,property_equity,account_deposits,account_flows,account_growth,account_tax,account_value,cumulative_cash,wealth_tax,net_position,vs_keep,break_even
+Rent,,2029-01,1361717.65,,,,,,-169845.04,1245.99,1191872.62,0.00,
+Sell now → invest,2026-01,2029-01,1000500.00,1000500.00,168599.05,206003.05,77951.55,1298396.53,-169845.04,0.00,1128551.49,-63321.12,0.055952
+Sell last tax-free month → invest,2026-12,2029-01,1154524.95,1154524.95,118630.03,155946.83,59010.28,1371337.51,-169845.04,0.00,1201492.48,9619.86,0.034046
