@@ -1,0 +1,14 @@
+/target
+*.csv
+*.snap.new
+
+# Personal scenarios with real numbers: never committed
+/scenarios/private/
+
+# Web UI
+/web/node_modules/
+/web/dist/
+/web/src/wasm-pkg/
+
+# IDE settings
+/.idea/

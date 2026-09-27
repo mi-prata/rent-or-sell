@@ -1,0 +1,33 @@
+[workspace]
+resolver = "3"
+members = ["crates/engine"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+
+# Every dependency is declared here once; member crates use `workspace = true`
+# (adding `features` or `optional` locally where needed).
+[workspace.dependencies]
+# Workspace crates
+rent-or-sell-engine = { path = "crates/engine", version = "0.1.0" }
+
+# Engine
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.21"
+toml = "1.1.6"
+
+# CLI
+anyhow = "1.0.104"
+clap = { version = "4.6.7", features = ["derive"] }
+comfy-table = "8.0.1"
+csv = "1.4.0"
+
+# WebAssembly / TypeScript types
+tsify = { version = "0.5.8", default-features = false, features = ["js"] }
+wasm-bindgen = "0.2.129"
+
+# Tests
+approx = "0.5.1"
+insta = "1.48.0"
+proptest = "1.11.0"
