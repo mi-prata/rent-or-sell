@@ -1,0 +1,13 @@
+[package]
+name = "rent-or-sell-wasm"
+edition.workspace = true
+version.workspace = true
+description = "The engine compiled to WebAssembly for the web UI (built with wasm-pack)."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rent-or-sell-engine = { workspace = true, features = ["tsify"] }
+tsify.workspace = true
+wasm-bindgen.workspace = true
