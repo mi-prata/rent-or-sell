@@ -63,13 +63,39 @@ export default function App() {
       return true;
     }
   });
-  const toggleInputs = () => {
-    setInputsOpen(!inputsOpen);
+  const inputsPane = useRef<HTMLElement>(null);
+  const collapseButton = useRef<HTMLButtonElement>(null);
+  const expandButton = useRef<HTMLButtonElement>(null);
+  const moveFocus = useRef(false);
+  const setInputs = (open: boolean) => {
+    setInputsOpen(open);
     try {
-      localStorage.setItem(INPUTS_KEY, inputsOpen ? "closed" : "open");
+      localStorage.setItem(INPUTS_KEY, open ? "open" : "closed");
     } catch {
       // Not remembered; the toggle still works.
     }
+  };
+  const toggleInputs = () => {
+    moveFocus.current = true;
+    setInputs(!inputsOpen);
+  };
+  // Focus follows the toggle: collapse and expand swap places.
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    (inputsOpen ? collapseButton : expandButton).current?.focus();
+  }, [inputsOpen]);
+  /** The intro's link: opens the panel and outlines it once to show where it is. */
+  const showInputs = () => {
+    setInputs(true);
+    requestAnimationFrame(() => {
+      const pane = inputsPane.current;
+      if (!pane) return;
+      pane.scrollTop = 0;
+      pane.classList.remove("flash");
+      void pane.offsetWidth; // restart the animation
+      pane.classList.add("flash");
+    });
   };
   const fileInput = useRef<HTMLInputElement>(null);
   const debounced = useDebounced(scenario, 150);
@@ -113,41 +139,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <button
-          type="button"
-          className="pane-toggle"
-          aria-expanded={inputsOpen}
-          aria-controls="inputs"
-          onClick={toggleInputs}
-        >
-          {inputsOpen ? "Hide scenario" : "Edit scenario"}
-        </button>
-        <div className="brand-block">
-          <div className="brand">Rent or Sell?</div>
-          <div className="tagline">Sell a property and invest the proceeds, or rent it.</div>
-        </div>
-        <div className="topbar-spacer" />
-        <div className="topbar-actions">
-          <button type="button" onClick={() => fileInput.current?.click()}>
-            Open file…
-          </button>
-          <button type="button" onClick={download}>
-            Download
-          </button>
-          <button type="button" onClick={() => setScenario(withInvestment(example()))}>
-            Example
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept=".toml,text/plain"
-            hidden
-            onChange={(e) => {
-              void open(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
-        </div>
+        <div className="brand">Rent or Sell?</div>
       </header>
       {importError && (
         <div className="import-error" role="alert">
@@ -158,26 +150,102 @@ export default function App() {
         </div>
       )}
       <div className={inputsOpen ? "panes" : "panes collapsed"}>
-        <aside className="inputs" id="inputs" aria-label="Scenario" hidden={!inputsOpen}>
+        {!inputsOpen && (
+          <div className="rail">
+            <button
+              ref={expandButton}
+              type="button"
+              className="pane-toggle"
+              aria-expanded={false}
+              aria-controls="inputs"
+              aria-label="Expand scenario panel"
+              title="Expand scenario panel"
+              onClick={toggleInputs}
+            >
+              <Chevron points="6 3 11 8 6 13" />
+            </button>
+          </div>
+        )}
+        <aside ref={inputsPane} className="inputs" id="inputs" aria-labelledby="inputs-title" hidden={!inputsOpen}>
+          <div className="pane-head">
+            <div>
+              <h2 id="inputs-title">Scenario</h2>
+              <p>Property, mortgage, rent and costs.</p>
+            </div>
+            <button
+              ref={collapseButton}
+              type="button"
+              className="pane-toggle"
+              aria-expanded={true}
+              aria-controls="inputs"
+              aria-label="Collapse scenario panel"
+              title="Collapse scenario panel"
+              onClick={toggleInputs}
+            >
+              <Chevron points="10 3 5 8 10 13" />
+            </button>
+          </div>
+          <div className="pane-actions">
+            <button type="button" onClick={() => fileInput.current?.click()}>
+              Import
+            </button>
+            <button type="button" onClick={download}>
+              Download
+            </button>
+            <button type="button" onClick={() => setScenario(withInvestment(example()))}>
+              Example
+            </button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept=".toml,text/plain"
+              hidden
+              onChange={(e) => {
+                void open(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+          </div>
           <ScenarioForm scenario={scenario} onChange={setScenario} errors={errors} />
           <p className="inputs-note">Kept in this browser only. Download saves a file the CLI reads too.</p>
         </aside>
-        <main className="results" aria-live="polite">
-          {shown ? (
-            <ErrorBoundary what="results">
-              <Results
-                h={shown.h}
-                scenario={shown.s}
-                stale={!result.ok}
-                edit={(f) => setScenario((s) => produce(s, f))}
-                investmentError={errors.investment?.[0]}
-              />
-            </ErrorBoundary>
-          ) : (
-            <p className="empty">Fix the issues on the left to see results.</p>
-          )}
+        <main className="results">
+          {/* The one place the page addresses the reader directly (an exception in AGENTS.md). */}
+          <div className="intro">
+            <h1>Should you rent out a Norwegian residential property or sell it and invest the money?</h1>
+            <p>
+              Set details about the property, mortgage, rent and costs in the{" "}
+              <button type="button" className="to-inputs" aria-controls="inputs" onClick={showInputs}>
+                scenario panel
+              </button>
+              .
+            </p>
+          </div>
+          <div aria-live="polite">
+            {shown ? (
+              <ErrorBoundary what="results">
+                <Results
+                  h={shown.h}
+                  scenario={shown.s}
+                  stale={!result.ok}
+                  edit={(f) => setScenario((s) => produce(s, f))}
+                  investmentError={errors.investment?.[0]}
+                />
+              </ErrorBoundary>
+            ) : (
+              <p className="empty">Fix the issues on the left to see results.</p>
+            )}
+          </div>
         </main>
       </div>
     </div>
+  );
+}
+
+function Chevron({ points }: { points: string }) {
+  return (
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <polyline points={points} />
+    </svg>
   );
 }

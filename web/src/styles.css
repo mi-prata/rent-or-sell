@@ -48,27 +48,39 @@ code { font-family: ui-monospace, monospace; font-size: 0.9em; }
   height: 64px; padding: 0 28px; display: flex; align-items: center; gap: 24px;
   background: var(--surface); border-bottom: 1px solid var(--line);
 }
-.brand-block { display: flex; flex-direction: column; gap: 1px; }
 .brand { font-family: var(--serif); font-size: 24px; font-weight: 500; letter-spacing: -0.3px; line-height: 1.1; }
-.tagline { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
 .panes { flex: 1; display: grid; grid-template-columns: minmax(360px, 460px) minmax(0, 1fr); min-height: 0; }
-.panes.collapsed { grid-template-columns: minmax(0, 1fr); }
-.pane-toggle {
-  height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--ink);
-  background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+/* Collapsed, the panel leaves a narrow rail with the expand chevron. */
+.panes.collapsed { grid-template-columns: 48px minmax(0, 1fr); }
+.rail {
+  display: flex; justify-content: center; padding-top: 16px; background: var(--pane);
+  border-right: 1px solid var(--line); height: calc(100vh - 64px); position: sticky; top: 0;
 }
-.pane-toggle:hover { background: var(--ground); }
-.pane-toggle:focus-visible, .topbar-actions button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Collapse and expand: a quiet chevron, bordered only on hover. */
+.pane-toggle {
+  flex: none; width: 32px; height: 32px; display: grid; place-items: center; padding: 0;
+  border: 1px solid transparent; border-radius: 8px; background: none; color: var(--muted); cursor: pointer;
+}
+.pane-toggle:hover { border-color: var(--field); background: var(--surface); color: var(--ink); }
+.pane-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.pane-toggle:focus-visible, .pane-actions button:focus-visible, .to-inputs:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
 /* Inputs pane */
-.topbar-spacer { flex: 1; }
-.topbar-actions { display: flex; gap: 6px; }
-.topbar-actions button, .list-head button, .varies button, .more {
+.pane-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 0 0 12px 4px; }
+.pane-head h2 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 500; letter-spacing: -0.2px; }
+.pane-head p { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
+.pane-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.period { display: flex; flex-direction: column; gap: 10px; margin: 0 4px 16px; }
+/* One outline when the intro's link is used, to show where the panel is. */
+.inputs.flash { animation: flash 1.1s ease-out; }
+@keyframes flash { from { box-shadow: inset 0 0 0 3px var(--ink); } to { box-shadow: inset 0 0 0 3px transparent; } }
+@media (prefers-reduced-motion: reduce) { .inputs.flash { animation-duration: 0s; } }
+.pane-actions button, .list-head button, .varies button, .more {
   height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--field);
   background: var(--surface); color: var(--ink); font-size: 13px; cursor: pointer;
 }
-.topbar-actions button:hover, .list-head button:hover, .varies button:hover { border-color: var(--muted); }
+.pane-actions button:hover, .list-head button:hover, .varies button:hover { border-color: var(--muted); }
 .import-error {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 28px; background: var(--error-bg); color: var(--error); font-size: 13px;
@@ -155,6 +167,15 @@ code { font-family: ui-monospace, monospace; font-size: 0.9em; }
 
 /* Results pane */
 .results { padding: 28px 32px 48px; min-width: 0; }
+/* Intro: the question the page answers, and where to start. */
+.intro { max-width: 1040px; margin: 0 auto 28px; }
+.intro h1 { max-width: 62ch; margin: 0; font-family: var(--serif); font-size: 26px; font-weight: 500; line-height: 1.25; letter-spacing: -0.3px; text-wrap: balance; }
+.intro p { margin: 10px 0 0; color: var(--ink-2); line-height: 1.6; }
+.to-inputs {
+  border: 0; padding: 0; background: none; color: var(--ink); font-weight: 600; cursor: pointer;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
+.to-inputs:hover { text-decoration-thickness: 2px; }
 .results-inner { display: flex; flex-direction: column; gap: 28px; max-width: 1040px; margin: 0 auto; transition: opacity 0.15s; }
 .results-inner.stale { opacity: 0.55; }
 .stale-note { margin: 0; color: var(--error); font-size: 13px; }
@@ -293,10 +314,11 @@ code { font-family: ui-monospace, monospace; font-size: 0.9em; }
 
 /* Narrow screens: stack the panes and the two sides. */
 @media (max-width: 900px) {
-  .panes { grid-template-columns: 1fr; }
+  .panes, .panes.collapsed { grid-template-columns: 1fr; }
+  .rail { height: auto; position: static; justify-content: flex-start; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
   .inputs { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
-  .topbar { flex-wrap: wrap; height: auto; padding: 10px 16px; }
-  .tagline { white-space: normal; }
+  .topbar { padding: 0 16px; }
+  .intro h1 { font-size: 22px; }
   .results { padding: 20px 16px 32px; }
 }
 @media (max-width: 700px) {

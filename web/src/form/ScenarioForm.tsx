@@ -36,11 +36,8 @@ export default function ScenarioForm({ scenario: s, onChange, errors }: Props) {
 
   return (
     <div className="form">
-      <Section
-        title="Scenario"
-        summary={`${s.horizon_years} years from ${s.start}`}
-        errors={errors.general}
-      >
+      {/* Name and period frame every result, so they stay outside the sections. */}
+      <div className="period">
         <TextField label="Name" value={s.name} onChange={(v) => edit((d) => (d.name = v))} />
         <div className="grid-2">
           <MonthField label="Start" value={s.start} onChange={(v) => v && edit((d) => (d.start = v))} />
@@ -52,7 +49,12 @@ export default function ScenarioForm({ scenario: s, onChange, errors }: Props) {
             onChange={(v) => v !== undefined && edit((d) => (d.horizon_years = Math.round(v)))}
           />
         </div>
-      </Section>
+        {errors.general?.map((e) => (
+          <p key={e} className="field-error" role="alert">
+            {e}
+          </p>
+        ))}
+      </div>
 
       <Section
         title="Property"

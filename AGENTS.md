@@ -35,7 +35,7 @@ Golden snapshots (`insta`) change only on purpose: review the diff, then `INSTA_
 
 ## Wording (UI and CLI text)
 
-- Impersonal: no "you"/"your"; name the value instead.
+- Impersonal: no "you"/"your"; name the value instead. The one exception is the web page's intro question ("Should you rent out…").
 - "Rent" and "renting", not "keep"; "property", not "flat"; "wealth", not "net worth".
 - No space before %: "6.94%", "+5.4%".
 - The period is stated once (top of the page, CLI title line); elsewhere say "at the end", except where the number is part of the claim ("Renting for 15 years: …").
