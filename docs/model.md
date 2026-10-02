@@ -60,7 +60,7 @@ The headline comparison (CLI summary, web page) values every option at the **sam
 **Verdict** (`Headline.verdict`, shared by the CLI and the page):
 - The winner between **selling now** and **renting for the whole period** (the two ends of the choice), with the gap in kr and as a share of the loser's value. Within the near-tie margin it is "about even".
 - The break-even return (renting's equivalent return), worded from the winner's side: the return the investment would need for selling to come out ahead, or how far it can fall before selling stops being ahead. It follows the verdict line.
-- Timing: an in-between strategy that beats the winner by more than the margin ("Better still: …"), or else the tax-free sale when it is within the margin ("gives about the same").
+- Timing: an in-between strategy that beats the winner by more than the margin ("Better still: …"), or else the tax-free sale when it is within the margin ("ends about the same").
 - Table rows within the margin of the winner are marked "≈ same".
 
 ## Wealth tax (optional `[wealth]`)

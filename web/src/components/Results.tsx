@@ -210,12 +210,14 @@ function Verdict({ h }: { h: Headline }) {
   const timing =
     t?.kind === "better" ? (
       <p className="verdict-line">
-        <strong>Better still:</strong> rent, then sell in {h.strategies[t.index].sale_month} (
-        {strategyNote(h.strategies[t.index])}): {kr(t.gain)} more ({share(t.gain_share)}).
+        <strong>Better still:</strong> rent until {h.strategies[t.index].sale_month} (
+        {strategyNote(h.strategies[t.index])}), then sell and invest the proceeds: {kr(t.gain)} more (
+        {share(t.gain_share)}).
       </p>
     ) : t?.kind === "about_same" ? (
       <p className="verdict-line">
-        Selling in {h.strategies[t.index].sale_month} ({strategyNote(h.strategies[t.index])}) gives about the same.
+        Renting until {h.strategies[t.index].sale_month} ({strategyNote(h.strategies[t.index])}), then selling and
+        investing the proceeds, ends about the same as {sell ? "selling now" : renting}.
       </p>
     ) : null;
   return (

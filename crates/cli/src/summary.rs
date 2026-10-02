@@ -216,7 +216,7 @@ pub fn render(h: &Headline, st: Style) -> String {
                     out,
                     "  {}",
                     st.bold(&format!(
-                        "Better still: rent, then sell in {} ({}): {} more ({}).",
+                        "Better still: rent until {} ({}), then sell and invest the proceeds: {} more ({}).",
                         x.sale_month,
                         why(x),
                         kr(Nok(*gain)),
@@ -226,9 +226,14 @@ pub fn render(h: &Headline, st: Style) -> String {
             }
             Some(Timing::AboutSame { index }) => {
                 let x = &h.strategies[*index];
+                let winner = if w.kind == StrategyKind::SellNow {
+                    "selling now"
+                } else {
+                    &rent_label
+                };
                 let _ = writeln!(
                     out,
-                    "  Selling in {} ({}) gives about the same.",
+                    "  Renting until {} ({}), then selling and investing the proceeds, ends about the same as {winner}.",
                     x.sale_month,
                     why(x)
                 );
