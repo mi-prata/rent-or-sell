@@ -3,7 +3,7 @@
 use serde::Serialize;
 
 use crate::error::{EngineError, invalid};
-use crate::loan::{self, Prepayment};
+use crate::loan;
 use crate::money::Nok;
 use crate::scenario::{CostLine, Scenario};
 use crate::time::YearMonth;
@@ -69,24 +69,12 @@ pub fn cost_lines(scenario: &Scenario) -> Result<Vec<CostLine>, EngineError> {
 }
 
 pub fn simulate_months(scenario: &Scenario) -> Result<(Vec<CostLine>, Vec<MonthRow>), EngineError> {
-    simulate_months_with(scenario, None)
-}
-
-/// Like [`simulate_months`], with an optional lump-sum prepayment of the loan.
-/// The prepayment itself comes from savings, not from the monthly cash flow.
-pub fn simulate_months_with(
-    scenario: &Scenario,
-    prepay: Option<Prepayment>,
-) -> Result<(Vec<CostLine>, Vec<MonthRow>), EngineError> {
     let n = scenario.horizon_months();
     let start = scenario.start;
     let cost_lines = cost_lines(scenario)?;
     let rent_index = scenario.rental.rent_growth.annual_step_index(start, n);
     let cost_index = scenario.costs.growth.annual_step_index(start, n);
-    let loan_rows = scenario
-        .loan
-        .as_ref()
-        .map(|l| loan::schedule_with(l, start, n, prepay));
+    let loan_rows = scenario.loan.as_ref().map(|l| loan::schedule(l, start, n));
     let fellesgjeld_rows = scenario
         .fellesgjeld
         .as_ref()

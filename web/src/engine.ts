@@ -19,7 +19,6 @@ export type {
   LoanKind,
   NamedCost,
   SalePoint,
-  Savings,
   Scenario,
   StrategyKind,
   StrategyRow,

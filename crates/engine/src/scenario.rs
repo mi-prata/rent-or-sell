@@ -42,10 +42,6 @@ pub struct Scenario {
     pub owner: Owner,
     #[serde(default)]
     pub sale: Sale,
-    /// A lump sum available in every option: prepays the loan in the
-    /// "keep and prepay" variant, and is invested otherwise.
-    #[serde(default)]
-    pub savings: Option<Savings>,
     #[serde(default)]
     pub alternative: Alternative,
     /// Wealth tax inputs; without them, wealth tax is not modelled.
@@ -269,16 +265,6 @@ pub struct Costs {
     pub other: Vec<NamedCost>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "tsify", derive(tsify::Tsify))]
-#[serde(deny_unknown_fields)]
-pub struct Savings {
-    pub amount: Nok,
-    /// When the money is available; defaults to `start`.
-    #[serde(default)]
-    pub at: Option<YearMonth>,
-}
-
 /// What money not tied up in the property is invested in.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[cfg_attr(feature = "tsify", derive(tsify::Tsify))]
@@ -436,14 +422,6 @@ impl Scenario {
         self.owner.moved_in.unwrap_or(self.property.purchase_date)
     }
 
-    /// When the savings lump sum becomes available.
-    pub fn savings_month(&self) -> YearMonth {
-        self.savings
-            .as_ref()
-            .and_then(|s| s.at)
-            .unwrap_or(self.start)
-    }
-
     pub fn moved_out(&self) -> YearMonth {
         self.owner.moved_out.unwrap_or(self.start)
     }
@@ -539,21 +517,6 @@ impl Scenario {
                 .validate("wealth.other_net_wealth", -1e12, 1e12)?;
             if let Some(v) = w.assessed_market_value {
                 non_negative("wealth.assessed_market_value", v)?;
-            }
-        }
-        if let Some(savings) = &self.savings {
-            non_negative("savings.amount", savings.amount)?;
-            let at = self.savings_month();
-            if at < self.start || at >= horizon_end {
-                return Err(invalid(format!(
-                    "savings.at {at} must be within the horizon ({} to before {horizon_end})",
-                    self.start
-                )));
-            }
-            if self.alternative.invest.is_none() {
-                return Err(invalid(
-                    "savings needs [alternative.invest]: that's where it goes when not prepaying",
-                ));
             }
         }
         non_negative("rental.monthly_rent", self.rental.monthly_rent)?;

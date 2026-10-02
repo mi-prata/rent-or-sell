@@ -22,13 +22,14 @@ function withInvestment(s: Scenario): Scenario {
       });
 }
 
-/** Scenarios saved before vacancy was entered in weeks a year. */
+/** Scenarios saved before vacancy was entered in weeks a year, or with savings (since removed). */
 function upgrade(s: Scenario): Scenario {
   const rental = s.rental as Scenario["rental"] & { vacancy_rate?: number };
   if (rental.vacancy_rate !== undefined) {
     rental.vacancy_weeks ??= Math.round(rental.vacancy_rate * 52 * 100) / 100;
     delete rental.vacancy_rate;
   }
+  delete (s as Scenario & { savings?: unknown }).savings;
   return s;
 }
 

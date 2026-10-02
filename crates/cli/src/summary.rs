@@ -337,25 +337,6 @@ pub fn render(h: &Headline, st: Style) -> String {
         }
         _ => {}
     }
-    if let Some(sv) = &h.savings {
-        let be = sv
-            .break_even
-            .map_or(String::new(), |r| format!(" (break-even {})", pct(r)));
-        let verdict = if sv.tie {
-            "investing them or paying down the loan is a tie".to_string()
-        } else if sv.prepay_vs_invest > 0.0 {
-            format!(
-                "paying down the loan wins by {} kr",
-                Nok(sv.prepay_vs_invest)
-            )
-        } else {
-            format!(
-                "investing them wins by {} kr over paying down the loan",
-                Nok(-sv.prepay_vs_invest)
-            )
-        };
-        also.push(format!("Savings of {}: {verdict}{be}.", Nok(sv.amount)));
-    }
     if !also.is_empty() {
         let _ = writeln!(out, "\n  {}", st.cyan("Also"));
         for a in also {
@@ -369,7 +350,7 @@ pub fn render(h: &Headline, st: Style) -> String {
     let _ = writeln!(
         out,
         "\n  {}",
-        st.dim("More: run --full (all tables, every sale month, other returns) · sensitivity · explain --option now|rent|prepay")
+        st.dim("More: run --full (all tables, every sale month, other returns) · sensitivity · explain --option now|rent")
     );
     out
 }

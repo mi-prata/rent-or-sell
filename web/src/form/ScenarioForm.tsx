@@ -4,7 +4,6 @@ import {
   constantOf,
   newFellesgjeld,
   newLoan,
-  newSavings,
   newWealth,
   produce,
 } from "../scenario";
@@ -329,31 +328,6 @@ export default function ScenarioForm({ scenario: s, onChange, errors }: Props) {
             hint="Empty: the start month"
           />
         </div>
-      </Section>
-
-      <Section
-        title="Savings"
-        enabled={s.savings !== undefined}
-        onToggle={(on) => edit((d) => (d.savings = on ? newSavings() : undefined))}
-        summary={s.savings && `${grouped(s.savings.amount)} kr`}
-        errors={errors.savings}
-      >
-        {s.savings && (
-          <div className="grid-2">
-            <NumberField
-              label="Amount"
-              value={s.savings.amount}
-              onChange={(v) => edit((d) => (d.savings!.amount = v ?? 0))}
-            />
-            <MonthField
-              label="Available from"
-              optional
-              placeholder={s.start}
-              value={s.savings.at}
-              onChange={(v) => edit((d) => (d.savings!.at = v))}
-            />
-          </div>
-        )}
       </Section>
 
       <Section

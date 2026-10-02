@@ -4,8 +4,7 @@
 //! so their values at the horizon compare directly, and each can be stated as
 //! the return that selling now would need to match it.
 //!
-//! Values leave the savings out (they are the same in every strategy): a
-//! strategy's value is plain keep's property equity at the horizon plus the
+//! A strategy's value is plain keep's property equity at the horizon plus the
 //! matching sell row's `vs_keep` (see [`AltModel::sold_value`]).
 
 use serde::Serialize;
@@ -43,7 +42,7 @@ pub struct Strategy {
     pub kind: StrategyKind,
     /// Months after the start of the sale (the horizon for `Rent`).
     pub sale_offset: usize,
-    /// Worth at the horizon, savings excluded.
+    /// Worth at the horizon.
     pub value: Nok,
     /// The constant return, taxed like the configured investment, at which
     /// selling now ends up at `value`.
@@ -85,11 +84,10 @@ pub fn strategies(
 ) -> Option<Strategies> {
     let spec = alt.spec()?;
     let n = scenario.horizon_months();
-    let savings = alt.savings_value(spec, n);
     let by_sale: Vec<SalePoint> = (0..=n)
         .map(|s| SalePoint {
             offset: s,
-            value: alt.sold_value_with(spec, s, n, savings),
+            value: alt.sold_value(spec, s, n),
             tax_free: sale.outcome(s).tax_free.tax_free,
         })
         .collect();
@@ -139,12 +137,11 @@ pub fn strategies(
         .map(|i| {
             let rate = lo + step * i as f64;
             let spec = InvestSpec::constant(rate, spec.tax(), n);
-            let savings = alt.savings_value(&spec, n);
             ReturnPoint {
                 rate,
                 values: offsets
                     .iter()
-                    .map(|&s| alt.sold_value_with(&spec, s, n, savings))
+                    .map(|&s| alt.sold_value(&spec, s, n))
                     .collect(),
             }
         })

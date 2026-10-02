@@ -108,11 +108,9 @@ fn investing_at_rentings_equivalent_ties_with_renting() {
 
 #[test]
 fn after_tax_equivalent_matches_the_break_even() {
-    // Without wealth tax the savings don't interact with the sale, so this
-    // matches the break-even (which leaves the savings out) exactly; with it,
-    // they shift what sits above the threshold, which moves it slightly.
-    let mut s = with_return(basic(), 0.04, InvestTax::AfterTax);
-    s.wealth = None;
+    // The same search (selling now, after-tax returns) towards the same target,
+    // wealth tax included.
+    let s = with_return(basic(), 0.04, InvestTax::AfterTax);
     let e = evaluate(&s, &rules()).unwrap();
     let rent = e.strategies.as_ref().unwrap().strategies.last().unwrap();
     let sell_now = e
@@ -151,7 +149,6 @@ fn by_return_holds_renting_flat_and_matches_the_configured_return() {
 fn without_an_investment_there_are_no_strategies() {
     let mut s = basic();
     s.alternative.invest = None;
-    s.savings = None;
     let e = evaluate(&s, &rules()).unwrap();
     assert!(e.strategies.is_none());
     let h = headline(&s, &e);

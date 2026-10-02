@@ -133,40 +133,11 @@ fn sell_now_pays_wealth_tax_on_the_discounted_investment() {
 }
 
 #[test]
-fn debt_reduction_applies_when_keeping_with_invested_savings() {
-    // Keep with a 2M interest-free loan (balance 1.76M after December) and
-    // 1M savings in an equity fund: gross assets 5M, share discount 200 000,
-    // debt reduction = 1.76M × 200 000 / 5M = 70 400.
-    // Net = 4M + 800 000 − (1.76M − 70 400) = 3 110 400 → tax 12 104.
-    // Plain keep (no savings): 4M − 1.76M = 2.24M → tax 3 400.
-    let mut s = scenario(0.0, 1, 1.0);
-    s.loan = Some(loan(2_000_000.0, LoanKind::Serial, 0.0, "2034-04"));
-    s.savings = Some(rent_or_sell_engine::scenario::Savings {
-        amount: Nok(1_000_000.0),
-        at: None,
-    });
-    let e = evaluate(&s, &rules()).unwrap();
-    assert_relative_eq!(e.keep.years[0].wealth_tax.0, 3_400.0, epsilon = 1e-6);
-    let keep = row(&e, "Rent (savings invested)");
-    let account = keep.account.as_ref().unwrap();
-    assert_relative_eq!(account.wealth_tax.0, 12_104.0, epsilon = 1e-6);
-    assert_relative_eq!(
-        account.value.0,
-        1_000_000.0 - (12_104.0 - 3_400.0),
-        epsilon = 1e-6
-    );
-}
-
-#[test]
 fn below_the_threshold_wealth_tax_changes_nothing() {
-    // A 1M property and 1M in savings never reach the 1.9M threshold.
+    // A 1M property never reaches the 1.9M threshold.
     let mut with = scenario(0.0, 1, 1.0);
     with.property.market_value = Nok(1_000_000.0);
     with.property.purchase_price = Nok(1_000_000.0);
-    with.savings = Some(rent_or_sell_engine::scenario::Savings {
-        amount: Nok(800_000.0),
-        at: None,
-    });
     let mut without = with.clone();
     without.wealth = None;
     let (a, b) = (

@@ -1,11 +1,11 @@
-//! Investment account, cash-flow parity, keep-and-prepay and break-even.
+//! Investment account, cash-flow parity and break-even.
 
 mod common;
 
 use approx::assert_relative_eq;
-use common::{loan, simple, ym};
+use common::{simple, ym};
 use rent_or_sell_engine::alternative::{InvestSpec, run_account};
-use rent_or_sell_engine::scenario::{Invest, InvestTax, LoanKind, Savings};
+use rent_or_sell_engine::scenario::{Invest, InvestTax};
 use rent_or_sell_engine::{
     BreakEven, Evaluation, Nok, RowKind, Scenario, TaxRules, TimePath, evaluate,
 };
@@ -96,7 +96,6 @@ fn parity_at_zero_return_matches_selling_without_investing() {
     // the sale, which is the sale's plain net position (equity + cumulative cash).
     // Wealth tax differs between options, so it is switched off here.
     let mut s = basic();
-    s.savings = None;
     s.wealth = None;
     s.alternative.invest = invest(0.0, InvestTax::AfterTax);
     let e = evaluate(&s, &rules()).unwrap();
@@ -126,7 +125,6 @@ fn break_even_return_reproduces_keep() {
     for label in ["Sell now", "Sell last tax-free", "Sell 2030-01"] {
         let r = rate(row(&base, label).break_even);
         let mut s = basic();
-        s.savings = None; // break-even leaves savings out
         s.alternative.invest = invest(r, InvestTax::AfterTax);
         let e = evaluate(&s, &rules()).unwrap();
         assert!(row(&e, label).vs_keep.unwrap().0.abs() < 1.0, "{label}");
@@ -139,65 +137,13 @@ fn break_even_return_reproduces_keep() {
 }
 
 #[test]
-fn prepay_break_even_reproduces_keep_and_splits_the_decision() {
-    let base = evaluate(&basic(), &rules()).unwrap();
-    let r = rate(row(&base, "Rent, prepay").break_even);
-    let vs_keep = |ret: f64| {
-        let mut s = basic();
-        s.alternative.invest = invest(ret, InvestTax::AfterTax);
-        let e = evaluate(&s, &rules()).unwrap();
-        row(&e, "Rent, prepay").vs_keep.unwrap().0
-    };
-    assert!(vs_keep(r).abs() < 1.0);
-    assert!(vs_keep(r - 0.01) > 0.0, "below break-even, prepaying wins");
-    assert!(vs_keep(r + 0.01) < 0.0, "above break-even, investing wins");
-}
-
-#[test]
-fn prepayment_beyond_the_balance_is_invested() {
-    // 100 000 loan, 300 000 savings: 100 000 repays the loan, 200 000 is invested.
-    let mut s = simple(10_000.0);
-    s.loan = Some(loan(100_000.0, LoanKind::Annuity, 0.05, "2040-12"));
-    s.savings = Some(Savings {
-        amount: Nok(300_000.0),
-        at: None,
-    });
-    s.alternative.invest = invest(0.0, InvestTax::AfterTax);
-    let e = evaluate(&s, &rules()).unwrap();
-    let prepay = row(&e, "Rent, prepay");
-    assert_relative_eq!(
-        prepay.account.as_ref().unwrap().deposits.0,
-        200_000.0,
-        epsilon = 1e-6
-    );
-    // The loan is gone: equity = full value, no interest afterwards.
-    assert_relative_eq!(prepay.property_equity.0, 4_000_000.0, epsilon = 1e-6);
-}
-
-#[test]
 fn without_invest_only_break_even_is_shown() {
     let mut s = basic();
-    s.savings = None;
     s.alternative.invest = None;
     let e = evaluate(&s, &rules()).unwrap();
     let sell = row(&e, "Sell now");
     assert!(sell.net_position.is_none());
     assert!(sell.break_even.is_some());
-    assert!(e.comparison.iter().all(|r| r.kind != RowKind::KeepPrepay));
-}
-
-#[test]
-fn savings_require_an_investment_and_a_date_in_the_horizon() {
-    let mut s = simple(0.0);
-    s.savings = Some(Savings {
-        amount: Nok(1.0),
-        at: None,
-    });
-    assert!(evaluate(&s, &rules()).is_err());
-    s.alternative.invest = invest(0.05, InvestTax::AfterTax);
-    assert!(evaluate(&s, &rules()).is_ok());
-    s.savings.as_mut().unwrap().at = Some(ym("2027-01"));
-    assert!(evaluate(&s, &rules()).is_err());
 }
 
 #[test]

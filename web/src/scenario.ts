@@ -1,5 +1,5 @@
 // Helpers for editing a Scenario (the engine's input, typed from Rust).
-import type { Fellesgjeld, Invest, Loan, Savings, Scenario, TimePath, Wealth } from "./engine";
+import type { Fellesgjeld, Invest, Loan, Scenario, TimePath, Wealth } from "./engine";
 
 /** A copy of `s` with `edit` applied (plain objects, so a deep clone is cheap). */
 export function produce(s: Scenario, edit: (draft: Scenario) => void): Scenario {
@@ -61,8 +61,6 @@ export const newInvest = (): Invest => ({
   equity_share: 1,
 });
 
-export const newSavings = (): Savings => ({ amount: 100_000, at: undefined });
-
 export const newWealth = (): Wealth => ({
   persons: 1,
   other_net_wealth: { constant: 0 },
@@ -79,7 +77,6 @@ export type SectionKey =
   | "sale"
   | "owner"
   | "investment"
-  | "savings"
   | "wealth";
 
 /**
@@ -96,7 +93,6 @@ export function sectionOfError(message: string): SectionKey {
     [/\bcosts?\b|\bcost "/, "costs"],
     [/\bsale\./, "sale"],
     [/\bowner\b|moved_(in|out)/, "owner"],
-    [/\bsavings/, "savings"],
     [/alternative\.invest|\binvest/, "investment"],
     [/\bwealth\./, "wealth"],
   ];

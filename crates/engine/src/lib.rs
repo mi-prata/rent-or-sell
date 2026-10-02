@@ -57,17 +57,8 @@ pub struct KeepResult {
 
 /// Simulates keeping and renting out the property over the scenario horizon.
 pub fn run_keep(scenario: &Scenario, rules: &TaxRules) -> Result<KeepResult, EngineError> {
-    run_keep_with(scenario, rules, None)
-}
-
-/// Like [`run_keep`], with an optional lump-sum prepayment of the loan.
-pub fn run_keep_with(
-    scenario: &Scenario,
-    rules: &TaxRules,
-    prepay: Option<loan::Prepayment>,
-) -> Result<KeepResult, EngineError> {
     scenario.validate()?;
-    let (cost_lines, mut months) = keep::simulate_months_with(scenario, prepay)?;
+    let (cost_lines, mut months) = keep::simulate_months(scenario)?;
     if let Some(w) = WealthModel::new(scenario, rules) {
         for (m, row) in months.iter_mut().enumerate() {
             if row.month.month() == 12 {
@@ -112,7 +103,7 @@ pub struct Evaluation {
     pub year_end: Vec<SaleOutcome>,
     pub options: Vec<SaleOption>,
     pub tax_free_window: TaxFreeWindow,
-    /// Keep vs sell at the horizon: keep, keep-and-prepay, then each sale option → invest.
+    /// Keep vs sell at the horizon: keep, then each sale option → invest.
     pub comparison: Vec<ComparisonRow>,
     /// After-tax return that selling now must earn to match keeping until each year's end.
     pub year_end_break_even: Vec<BreakEven>,
@@ -177,9 +168,8 @@ pub fn evaluate(scenario: &Scenario, rules: &TaxRules) -> Result<Evaluation, Eng
         });
 
         let n = scenario.horizon_months();
-        let alt = AltModel::new(scenario, rules, &keep, &model)?;
+        let alt = AltModel::new(scenario, rules, &keep, &model);
         let mut comparison = vec![alt.keep_row(n)];
-        comparison.extend(alt.keep_prepay_row(n));
         for o in options.iter().filter(|o| o.outcome.offset < n) {
             comparison.push(alt.sell_row(format!("{} → invest", o.label), o.outcome.offset, n));
         }

@@ -13,7 +13,7 @@ use crate::{EngineError, evaluate};
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct SensitivityRow {
     pub label: String,
-    /// Keep (with any savings invested): net position at the horizon.
+    /// Keep: net position at the horizon.
     pub keep_net_position: Nok,
     /// Selling now and investing, minus keeping (`None` without `[alternative.invest]`).
     pub sell_now_vs_keep: Option<Nok>,

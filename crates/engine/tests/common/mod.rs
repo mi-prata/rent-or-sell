@@ -39,7 +39,6 @@ pub fn simple(monthly_rent: f64) -> Scenario {
         costs: Costs::default(),
         owner: Owner::default(),
         sale: Sale::default(),
-        savings: None,
         alternative: Alternative::default(),
         wealth: None,
     }

@@ -54,20 +54,13 @@ pub fn assumptions(scenario: &Scenario) -> Vec<AssumptionGroup> {
         ],
     ));
 
-    let mut comparing = group(
+    out.push(group(
         "Comparing",
         &[
             "Each option is valued as if everything were sold and cashed out at the end of the period, after all costs and taxes.",
             "Cash-flow parity: every option has the same out-of-pocket cash flows. After a sale, the money renting would have needed (or paid out) goes into (or comes out of) the investment.",
         ],
-    );
-    if scenario.savings.is_some() {
-        comparing.items.push(
-            "Savings are invested in every option, except when compared with paying down the loan (which shortens the loan and keeps the payment). Break-even returns leave savings out."
-                .into(),
-        );
-    }
-    out.push(comparing);
+    ));
 
     if scenario.alternative.invest.is_some() {
         out.push(group(
@@ -131,11 +124,7 @@ mod tests {
 
         let mut plain = basic.clone();
         plain.wealth = None;
-        plain.savings = None;
-        let groups = assumptions(&plain);
-        assert!(!groups.iter().any(|g| g.title == "Wealth tax"));
-        let comparing = groups.iter().find(|g| g.title == "Comparing").unwrap();
-        assert!(!comparing.items.iter().any(|i| i.starts_with("Savings")));
+        assert!(!assumptions(&plain).iter().any(|g| g.title == "Wealth tax"));
     }
 
     #[test]

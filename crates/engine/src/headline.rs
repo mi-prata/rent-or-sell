@@ -5,13 +5,12 @@
 //! "The same money in, two outcomes": keeping and selling now both start from
 //! the equity a sale would free up plus the same monthly cash flows; the end
 //! values below are chosen so that their difference is exactly the
-//! keep-vs-sell gap (the savings, invested identically in both, are left out).
+//! keep-vs-sell gap.
 
 use serde::Serialize;
 
-use crate::alternative::{BreakEven, RowKind};
+use crate::alternative::BreakEven;
 use crate::assumptions::{AssumptionGroup, assumptions};
-use crate::money::Nok;
 use crate::sale::TaxFreeWindow;
 use crate::scenario::InvestTax;
 use crate::scenario::Scenario;
@@ -35,7 +34,7 @@ pub struct Headline {
     pub proceeds_now: f64,
     /// Your equity in the flat at the horizon, after sale costs, debts and tax.
     pub keep_end: f64,
-    /// The same money invested (selling now), savings excluded.
+    /// The same money invested (selling now).
     pub sell_end: Option<f64>,
     /// Returns (the investment's and the strategies' equivalents) are before
     /// tax: the investment is taxed yearly or on cashing out.
@@ -54,7 +53,6 @@ pub struct Headline {
     /// in phases split where a debt is paid off or the flow changes direction.
     pub cash: Vec<CashPhase>,
     pub tax_free: TaxFree,
-    pub savings: Option<SavingsChoice>,
     pub warnings: Vec<String>,
     /// The mortgage's final payment, if it falls within the horizon.
     pub loan_paid_off: Option<PaidOff>,
@@ -62,7 +60,7 @@ pub struct Headline {
     pub assumptions: Vec<AssumptionGroup>,
 }
 
-/// One strategy, valued at the horizon (savings excluded).
+/// One strategy, valued at the horizon.
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[cfg_attr(feature = "tsify", derive(tsify::Tsify))]
 pub struct StrategyRow {
@@ -219,18 +217,6 @@ pub enum TaxFreeStatus {
     Never,
 }
 
-/// Savings: prepay the loan or invest them.
-#[derive(Clone, Debug, PartialEq, Serialize)]
-#[cfg_attr(feature = "tsify", derive(tsify::Tsify))]
-pub struct SavingsChoice {
-    pub amount: f64,
-    /// Prepaying minus investing; positive means prepaying wins.
-    pub prepay_vs_invest: f64,
-    /// Within 0.5% of keep's net position.
-    pub tie: bool,
-    pub break_even: Option<f64>,
-}
-
 pub fn headline(scenario: &Scenario, e: &Evaluation) -> Headline {
     let keep = &e.comparison[0];
     let keep_end = keep.property_equity;
@@ -311,26 +297,6 @@ pub fn headline(scenario: &Scenario, e: &Evaluation) -> Headline {
         },
     };
 
-    let savings = match (
-        e.comparison.iter().find(|r| r.kind == RowKind::KeepPrepay),
-        &scenario.savings,
-    ) {
-        (Some(p), Some(s)) => {
-            let d = p.vs_keep.unwrap_or(Nok::ZERO);
-            let scale = keep.net_position.map_or(1.0, |n| n.0.abs());
-            Some(SavingsChoice {
-                amount: s.amount.0,
-                prepay_vs_invest: d.0,
-                tie: d.0.abs() < 0.005 * scale,
-                break_even: match p.break_even {
-                    Some(BreakEven::Rate(r)) => Some(r),
-                    _ => None,
-                },
-            })
-        }
-        _ => None,
-    };
-
     let proceeds_now = e.options[0].outcome.equity.0;
 
     let loan_paid_off = scenario
@@ -362,7 +328,6 @@ pub fn headline(scenario: &Scenario, e: &Evaluation) -> Headline {
         by_return,
         cash: cash_phases(scenario, e),
         tax_free,
-        savings,
         warnings: e.warnings.clone(),
         loan_paid_off,
         assumptions: assumptions(scenario),

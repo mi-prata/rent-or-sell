@@ -36,17 +36,14 @@ What the engine computes and the rules behind it. Parameter values (rates, thres
 
 - **Cash-flow parity:** your pocket sees plain renting's cash flows in every option.
   - After a sale, what renting would have cost each month is paid into the investment, and a surplus is taken out. Once renting pays out (typically after the loan is paid off), selling pays the same amounts out of the investment, so it grows less than it would untouched; that is the income a sale gives up, counted once. Renting's rental tax is mirrored at each year end (in the sale year, only the part not already in the cash before the sale).
-  - "Rent and prepay" routes its cash-flow difference from plain renting through the investment.
   - So every option's **wealth** (its net position; "wealth" in the CLI and on the page) = property equity after a sale (if still held) + investment account after its cashing-out tax + the same cumulative cash.
 - **The investment** (`[alternative.invest]`): a return path compounded monthly, and a tax mode:
   - `after_tax` — the return is already net;
   - `yearly` — 22% of each calendar year's return;
   - `deferred` — the gain is taxed on cashing out at 22% × the share-income factor 1.72 = 37.84% (like an ASK). Skjermingsfradrag is ignored, so this slightly overstates the tax.
   - The account is **marginal**: a negative balance means holding less of the investment (borrowing at the same return), and the deferred-tax basis is the net money paid in, not clamped at zero.
-- **Savings** (`[savings]`): a lump sum that exists in every option. It prepays the loan in "rent and prepay" (the payment stays about the same and the loan ends earlier; any excess is invested) and is invested otherwise.
 - **Break-even returns** are found by bisection over −50% … +100%:
-  - per sale option, the constant after-tax return the proceeds need to match renting (savings left out);
-  - for prepaying, the return the savings need to beat it;
+  - per sale option, the constant after-tax return the proceeds need to match renting;
   - per year end, what selling now must earn to match renting until then.
 
 ## Strategies at one horizon
@@ -54,10 +51,10 @@ What the engine computes and the rules behind it. Parameter values (rates, thres
 The headline comparison (CLI summary, web page) values every option at the **same** horizon, so the options compare directly:
 
 - Every strategy is "sell at month *s*": *s* = 0 is selling now, *s* = horizon is renting throughout, anything between is renting, then selling and investing. `by_sale` holds every month.
-- A strategy's value leaves the savings out (they are the same in every option): plain renting's equity at the horizon plus that sale's comparison-row difference. The values therefore match the `--full` comparison table exactly.
+- A strategy's value is plain renting's equity at the horizon plus that sale's comparison-row difference. The values therefore match the `--full` comparison table exactly.
 - The named strategies are: sell now; sell in the last tax-free month (when the window is open); sell in the best month (when it is strictly between now and the horizon, isn't the tax-free month, and beats both selling now and the tax-free sale by more than the near-tie margin); rent to the horizon.
 - **Near-tie margin:** differences under 0.5% of a value count as "about the same". Without it, a one-month blip can win: renting a single month keeps that year's rent under the tax-free rental threshold while the interest is still deducted, worth about 2 000 kr today in one example, which then compounds into a headline "win".
-- **Equivalent return:** for each strategy, the constant yearly return, **taxed like the configured investment**, at which selling now ends up worth the same. It is in the same units as the return you enter (gross for `deferred`/`yearly`): selling now's is your own return, renting's is the break-even. Without wealth tax it equals the after-tax break-even for an `after_tax` investment; with wealth tax it differs slightly, because the savings shift what sits above the threshold.
+- **Equivalent return:** for each strategy, the constant yearly return, **taxed like the configured investment**, at which selling now ends up worth the same. It is in the same units as the return you enter (gross for `deferred`/`yearly`): selling now's is your own return, renting's is the break-even. For an `after_tax` investment it equals the after-tax break-even.
 - `by_return` values the strategies at constant returns from 0 to 12% (0.5 pp steps). Renting is flat; where selling now crosses it is renting's equivalent return.
 
 **Verdict** (`Headline.verdict`, shared by the CLI and the page):

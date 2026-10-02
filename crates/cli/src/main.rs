@@ -66,7 +66,7 @@ enum Command {
         #[arg(long, conflicts_with_all = ["at", "option", "compare"])]
         wealth: Option<i32>,
         /// Explain the keep-vs-sell comparison row (investment account included)
-        /// instead of the sale itself. Implied by --option rent / prepay.
+        /// instead of the sale itself. Implied by --option rent.
         #[arg(long)]
         compare: bool,
         #[command(flatten)]
@@ -89,11 +89,9 @@ enum OptionArg {
     TaxFree,
     /// Sell at the horizon (= keep to horizon).
     Horizon,
-    /// Rent, with savings invested (comparison row).
+    /// Rent to the horizon (comparison row).
     #[value(alias = "keep")]
     Rent,
-    /// Rent, prepaying the loan with savings (comparison row).
-    Prepay,
 }
 
 fn main() -> Result<()> {
@@ -179,13 +177,11 @@ fn run(
         "{}",
         comparison_view(&evaluation, Show::of(&scenario).wealth)
     );
-    println!(
-        "Break-even: after-tax annual return the sale proceeds must earn to match renting (savings excluded);\nfor \"prepay\", the return the savings must earn to beat prepaying the loan."
-    );
+    println!("Break-even: after-tax annual return the sale proceeds must earn to match renting.");
 
     if !headline.by_sale.is_empty() {
         println!(
-            "\nRent, then sell: wealth at {horizon} by sale month (savings excluded; the investment at its configured return):"
+            "\nRent, then sell: wealth at {horizon} by sale month (the investment at its configured return):"
         );
         println!("{}", by_sale_view(&headline));
         let basis = if headline.returns_before_tax {
@@ -193,7 +189,7 @@ fn run(
         } else {
             "after tax"
         };
-        println!("\nWealth at {horizon} at other yearly returns ({basis}; savings excluded):");
+        println!("\nWealth at {horizon} at other yearly returns ({basis}):");
         println!("{}", by_return_view(&headline));
     }
 
@@ -270,7 +266,7 @@ fn explain(
             };
             Some(offset)
         }
-        (None, Some(OptionArg::Rent | OptionArg::Prepay)) => None,
+        (None, Some(OptionArg::Rent)) => None,
         (None, option) => {
             let kind = match option.unwrap_or(OptionArg::Horizon) {
                 OptionArg::Now => OptionKind::SellNow,
@@ -285,7 +281,7 @@ fn explain(
     };
     println!("{} — {}\n", scenario.name, scenario.start);
 
-    let row_mode = compare || matches!(option, Some(OptionArg::Rent | OptionArg::Prepay));
+    let row_mode = compare || matches!(option, Some(OptionArg::Rent));
     if !row_mode {
         print!(
             "{}",
@@ -293,13 +289,9 @@ fn explain(
         );
         return Ok(());
     }
-    let alt = AltModel::new(&scenario, &rules, &evaluation.keep, &model)?;
-    let row = match (option, offset) {
-        (Some(OptionArg::Prepay), _) => match alt.keep_prepay_row(n) {
-            Some(row) => row,
-            None => bail!("rent-and-prepay needs [savings], a [loan] and [alternative.invest]"),
-        },
-        (_, Some(k)) if k < n => {
+    let alt = AltModel::new(&scenario, &rules, &evaluation.keep, &model);
+    let row = match offset {
+        Some(k) if k < n => {
             let label = format!("Sell {} → invest", scenario.start.add_months(k as i64));
             alt.sell_row(label, k, n)
         }

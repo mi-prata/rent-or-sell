@@ -14,21 +14,12 @@ pub struct LoanMonth {
     pub month: YearMonth,
     /// Annual nominal rate in effect this month.
     pub nominal_rate: f64,
-    /// Balance at the start of the month, before any prepayment.
+    /// Balance at the start of the month.
     pub opening_balance: Nok,
-    /// Extra lump-sum repayment at the start of the month.
-    pub prepayment: Nok,
     pub interest: Nok,
     pub principal: Nok,
     pub fee: Nok,
     pub closing_balance: Nok,
-}
-
-/// A lump-sum extra repayment at the start of month `offset` (from `start`).
-#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
-pub struct Prepayment {
-    pub offset: usize,
-    pub amount: Nok,
 }
 
 /// Fixed payment that repays `balance` over `n` months at `monthly_rate`.
@@ -42,67 +33,21 @@ pub fn annuity_payment(balance: f64, monthly_rate: f64, n: u32) -> f64 {
     balance * monthly_rate / (1.0 - (1.0 + monthly_rate).powi(-(n as i32)))
 }
 
-/// Months needed to repay `balance` with `payment` per month (annuity), rounded up.
-fn annuity_term(balance: f64, monthly_rate: f64, payment: f64) -> i64 {
-    let n = if monthly_rate == 0.0 {
-        balance / payment
-    } else {
-        -(1.0 - balance * monthly_rate / payment).ln() / (1.0 + monthly_rate).ln()
-    };
-    ((n - 1e-9).ceil() as i64).max(1)
-}
-
 /// The loan's schedule for `months` months from `start`. Payments start in the
 /// `start` month; the payment is re-computed each month over the remaining term,
 /// so a rate change re-amortises the annuity. Up to `interest_only_until` only
 /// interest is paid, and the loan is then amortised over the remaining term.
 /// After the end the rows are zero.
 pub fn schedule(loan: &Loan, start: YearMonth, months: usize) -> Vec<LoanMonth> {
-    schedule_with(loan, start, months, None)
-}
-
-/// Like [`schedule`], with an optional prepayment that **shortens the loan**:
-/// the monthly payment (annuity) or principal instalment (serial) stays about
-/// the same and the final payment moves earlier. A prepayment larger than the
-/// balance repays it; the excess is not recorded here. A prepayment in an
-/// interest-only period keeps the end date (it lowers the later payments).
-pub fn schedule_with(
-    loan: &Loan,
-    start: YearMonth,
-    months: usize,
-    prepay: Option<Prepayment>,
-) -> Vec<LoanMonth> {
     let rates = loan.nominal_rate.resolve(start, months);
     let mut balance = loan.balance.0;
-    let mut end = loan.end;
+    let end = loan.end;
     (0..months)
         .map(|m| {
             let month = start.add_months(m as i64);
             let opening = balance;
             let r = rates[m] / 12.0;
             let interest_only = loan.interest_only_until.is_some_and(|io| month <= io);
-            let mut prepayment = 0.0;
-            if let Some(p) = prepay.filter(|p| p.offset == m && balance > PAID_OFF)
-                && interest_only
-            {
-                prepayment = p.amount.0.min(balance);
-                balance -= prepayment;
-            } else if let Some(p) = prepay.filter(|p| p.offset == m && balance > PAID_OFF) {
-                let remaining = (end.months_since(month) + 1).max(1);
-                let (payment, instalment) = match loan.kind {
-                    LoanKind::Annuity => (annuity_payment(balance, r, remaining as u32), 0.0),
-                    LoanKind::Serial => (0.0, balance / remaining as f64),
-                };
-                prepayment = p.amount.0.min(balance);
-                balance -= prepayment;
-                if balance > PAID_OFF {
-                    let term = match loan.kind {
-                        LoanKind::Annuity => annuity_term(balance, r, payment),
-                        LoanKind::Serial => ((balance / instalment - 1e-9).ceil() as i64).max(1),
-                    };
-                    end = month.add_months(term - 1);
-                }
-            }
             let remaining = end.months_since(month) + 1;
             let (interest, principal, fee) = if balance <= PAID_OFF || remaining <= 0 {
                 (0.0, 0.0, 0.0)
@@ -130,7 +75,6 @@ pub fn schedule_with(
                 month,
                 nominal_rate: rates[m],
                 opening_balance: Nok(opening),
-                prepayment: Nok(prepayment),
                 interest: Nok(interest),
                 principal: Nok(principal),
                 fee: Nok(fee),
@@ -228,61 +172,6 @@ mod tests {
             epsilon = 1e-6
         );
         assert_eq!(s[239].closing_balance, Nok::ZERO);
-    }
-
-    #[test]
-    fn prepayment_shortens_annuity_and_keeps_payment() {
-        let l = loan(LoanKind::Annuity, TimePath::Constant(0.05));
-        let base = schedule(&l, ym("2027-01"), 240);
-        let p = Prepayment {
-            offset: 12,
-            amount: Nok(500_000.0),
-        };
-        let s = schedule_with(&l, ym("2027-01"), 240, Some(p));
-        let payment = |row: &LoanMonth| (row.interest + row.principal).0;
-        assert_eq!(s[12].prepayment, Nok(500_000.0));
-        assert_relative_eq!(
-            s[12].opening_balance.0,
-            base[12].opening_balance.0,
-            epsilon = 1e-6
-        );
-        // Payment stays at most the original and within one month's rounding of it.
-        assert!(payment(&s[13]) <= payment(&base[13]) + 1e-6);
-        assert!(payment(&s[13]) > payment(&base[13]) * 0.99);
-        // Paid off well before the original end; principal + prepayment repays the loan.
-        let last = s.iter().rposition(|r| r.principal.0 > 0.0).unwrap();
-        assert!(last < 239);
-        let repaid: f64 = s.iter().map(|r| (r.principal + r.prepayment).0).sum();
-        assert_relative_eq!(repaid, 3_000_000.0, epsilon = 1e-6);
-    }
-
-    #[test]
-    fn prepayment_shortens_serial_and_can_repay_everything() {
-        let l = loan(LoanKind::Serial, TimePath::Constant(0.05));
-        let s = schedule_with(
-            &l,
-            ym("2027-01"),
-            240,
-            Some(Prepayment {
-                offset: 0,
-                amount: Nok(1_500_000.0),
-            }),
-        );
-        assert_relative_eq!(s[1].principal.0, 12_500.0, epsilon = 1e-6);
-        assert_eq!(s[120].principal, Nok::ZERO);
-        assert_relative_eq!(s[119].closing_balance.0, 0.0, epsilon = 1e-6);
-
-        let all = schedule_with(
-            &l,
-            ym("2027-01"),
-            24,
-            Some(Prepayment {
-                offset: 3,
-                amount: Nok(9e9),
-            }),
-        );
-        assert_eq!(all[3].closing_balance, Nok::ZERO);
-        assert_eq!(all[4].interest, Nok::ZERO);
     }
 
     #[test]

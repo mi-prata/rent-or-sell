@@ -10,6 +10,5 @@
 - A rental deficit that other income can't absorb.
 - Future improvements (a cash cost plus a higher entry value).
 - Moving back in to restore the tax-free window.
-- Prepaying later than the savings are available; a "lower payment" prepayment mode; recurring prepayments.
 - Borettslag: the company's other assets, and individual paydown of fellesgjeld (IN-ordning).
 - Maintenance deduction when the property had no taxable rental in earlier years (partial rule).
