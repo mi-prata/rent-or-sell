@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Brushed brass in the page's olive (--sell #a0a121): a house on a rounded tile. -->
+  <defs>
+    <linearGradient id="brass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3e49a"/>
+      <stop offset=".45" stop-color="#a0a121"/>
+      <stop offset="1" stop-color="#5a5900"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#brass)"/>
+  <path d="M6 17 16 8l10 9M9 15v10h14V15" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>
