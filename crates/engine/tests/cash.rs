@@ -58,3 +58,15 @@ fn the_loan_payoff_splits_paid_in_from_paid_out() {
     assert_eq!(p[1].trend, Trend::Rising);
     assert_eq!(p[1].rent_growth, Some(0.03));
 }
+
+#[test]
+fn a_payoff_early_in_the_year_is_the_only_split() {
+    // The loan ends in 2051-03: 2050 pays in and 2051 as a whole pays out, but
+    // the payoff explains that change, so there is no extra split at 2050-12.
+    let mut s = basic(30);
+    s.loan.as_mut().unwrap().end = "2051-03".parse().unwrap();
+    let (p, _) = phases(&s);
+    assert_eq!(p.len(), 2, "{p:?}");
+    assert_eq!(p[0].end, "2051-03");
+    assert_eq!(p[0].ends_with, Some(Debt::Loan));
+}

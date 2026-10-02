@@ -22,7 +22,7 @@ What the engine computes and the rules behind it. Parameter values (rates, thres
 - **Out-of-pocket/mo** is the average monthly pre-tax shortfall; **after-tax/mo** is the year's after-tax cash flow ÷ months.
 - **Cash-flow phases** (`Headline.cash`): the after-tax cash flow in stretches of months, shown as "paid in" or "paid out".
   - Each month carries its pre-tax cash flow plus an even share of its year's tax and wealth tax, so the phases add up to renting's cumulative cash (tested).
-  - A phase ends at a debt's final payment (loan or fellesgjeld), or before a full year whose cash flow changes direction, unless a payoff between the two years already explains it.
+  - A phase ends at a debt's final payment (loan or fellesgjeld), or before a full year whose cash flow changes direction, unless a payoff in either of the two years already explains it.
   - Each phase has its first full year's monthly amount (the phase average without one), its total, and a trend: flat when the last full year is within 5% of the first, otherwise rising or falling. A rising payout also carries the rent growth when that is constant; it tracks the rent only approximately (fixed costs like fellesgjeld don't grow).
 
 ## Selling

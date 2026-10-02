@@ -337,7 +337,8 @@ pub fn headline(scenario: &Scenario, e: &Evaluation) -> Headline {
 /// Renting's after-tax cash flow in phases. Each month carries its
 /// pre-tax cash flow plus an even share of its year's tax and wealth tax, so
 /// the phases add up to the yearly figures. A phase ends at a debt's final
-/// payment, or before a full year whose cash flow changes direction.
+/// payment, or before a full year whose cash flow changes direction (unless
+/// a payoff in either year explains the change).
 fn cash_phases(scenario: &Scenario, e: &Evaluation) -> Vec<CashPhase> {
     let months = &e.keep.months;
     let years = &e.keep.years;
@@ -382,8 +383,9 @@ fn cash_phases(scenario: &Scenario, e: &Evaluation) -> Vec<CashPhase> {
             first_of(w[0].year),
             first_of(w[1].year),
         ) {
-            // A payoff between the two years already explains the change.
-            if !payoffs.iter().any(|&p| p >= from && p < to) && to > 0 {
+            // A payoff in either year already explains the change.
+            let later_end = to + 12;
+            if !payoffs.iter().any(|&p| p >= from && p < later_end) && to > 0 {
                 ends.push((to - 1, None));
             }
         }
